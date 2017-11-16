@@ -3,12 +3,9 @@ declare(strict_types=1);
 
 namespace DomainShop\Controller;
 
-use Common\Persistence\Database;
-use DomainShop\Entity\Order;
-use DomainShop\Entity\Pricing;
+use DomainShop\Service\RegisterService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Swap\Builder;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Expressive\Router\RouterInterface;
 use Zend\Expressive\Template\TemplateRendererInterface;
@@ -26,10 +23,20 @@ final class RegisterController implements MiddlewareInterface
      */
     private $renderer;
 
-    public function __construct(RouterInterface $router, TemplateRendererInterface $renderer)
+    /**
+     * @var RegisterService
+     */
+    private $registerService;
+
+    public function __construct(
+        RouterInterface $router,
+        TemplateRendererInterface $renderer,
+        RegisterService $registerService
+    )
     {
         $this->router = $router;
         $this->renderer = $renderer;
+        $this->registerService = $registerService;
     }
 
     public function __invoke(Request $request, Response $response, callable $out = null)
@@ -53,37 +60,17 @@ final class RegisterController implements MiddlewareInterface
             }
 
             if (empty($formErrors)) {
-                $orderId = count(Database::retrieveAll(Order::class)) + 1;
-
-                $order = new Order();
-                $order->setId($orderId);
-                $order->setDomainName($submittedData['domain_name']);
-                $order->setOwnerName($submittedData['name']);
-                $order->setOwnerEmailAddress($submittedData['email_address']);
-                $order->setPayInCurrency($submittedData['currency']);
-
-                /** @var Pricing $pricing */
-                $pricing = Database::retrieve(Pricing::class, $order->getDomainNameExtension());
-
-                if ($order->getPayInCurrency() !== $pricing->getCurrency()) {
-                    $swap = (new Builder())
-                        ->add('fixer')
-                        ->build();
-                    $rate = $swap->latest($pricing->getCurrency() . '/' . $order->getPayInCurrency());
-
-                    $amount = (int)round($pricing->getAmount() * $rate->getValue());
-                } else {
-                    $amount = $pricing->getAmount();
-                }
-
-                $order->setAmount($amount);
-
-                Database::persist($order);
+                $order = $this->registerService->registerDomain(
+                    $submittedData['domain_name'],
+                    $submittedData['name'],
+                    $submittedData['email_address'],
+                    $submittedData['currency']
+                );
 
                 return new RedirectResponse(
                     $this->router->generateUri(
                         'pay',
-                        ['orderId' => $order->id()]
+                        ['orderId' => $order->id() ]
                     )
                 );
             }

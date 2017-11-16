@@ -40,6 +40,26 @@ final class Order
      */
     private $amount;
 
+    /**
+     * Order constructor.
+     * @param string $domainName
+     * @param string $ownerName
+     * @param string $emailAddress
+     * @param string $currency
+     */
+    public function __construct(
+        string $domainName,
+        string $ownerName,
+        string $emailAddress,
+        string $currency
+    )
+    {
+        $this->domainName = $domainName;
+        $this->ownerName = $ownerName;
+        $this->ownerEmailAddress = $emailAddress;
+        $this->payInCurrency = $currency;
+    }
+
     public function id(): int
     {
         return $this->id;
@@ -55,19 +75,9 @@ final class Order
         return $this->domainName;
     }
 
-    public function setDomainName(string $domainName): void
-    {
-        $this->domainName = $domainName;
-    }
-
     public function getOwnerName(): string
     {
         return $this->ownerName;
-    }
-
-    public function setOwnerName(string $ownerName): void
-    {
-        $this->ownerName = $ownerName;
     }
 
     public function getOwnerEmailAddress(): string
@@ -75,19 +85,9 @@ final class Order
         return $this->ownerEmailAddress;
     }
 
-    public function setOwnerEmailAddress(string $ownerEmailAddress): void
-    {
-        $this->ownerEmailAddress = $ownerEmailAddress;
-    }
-
     public function wasPaid(): bool
     {
         return $this->wasPaid;
-    }
-
-    public function setWasPaid(bool $wasPaid): void
-    {
-        $this->wasPaid = $wasPaid;
     }
 
     public function getDomainNameExtension(): string
@@ -114,5 +114,16 @@ final class Order
     public function getAmount(): int
     {
         return $this->amount;
+    }
+
+    /**
+     * @param string $currency
+     * @param int $amount
+     */
+    public function pay(string $currency, int $amount)
+    {
+        $this->payInCurrency = $currency;
+        $this->amount = $amount;
+        $this->wasPaid = true;
     }
 }

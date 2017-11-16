@@ -20,6 +20,19 @@ final class Pricing
      */
     private $amount;
 
+    /**
+     * Pricing constructor.
+     * @param string $currency
+     * @param int $amount
+     * @param string $extension
+     */
+    public function __construct(string $currency, int $amount, string $extension)
+    {
+        $this->currency = $currency;
+        $this->amount = $amount;
+        $this->extension = $extension;
+    }
+
     public function id(): string
     {
         return $this->extension;
@@ -30,28 +43,13 @@ final class Pricing
         return $this->extension;
     }
 
-    public function setExtension(string $extension): void
-    {
-        $this->extension = $extension;
-    }
-
     public function getCurrency(): string
     {
         return $this->currency;
     }
 
-    public function setCurrency(string $currency): void
-    {
-        $this->currency = $currency;
-    }
-
     public function getAmount(): int
     {
         return $this->amount;
-    }
-
-    public function setAmount(int $amount): void
-    {
-        $this->amount = $amount;
     }
 }
